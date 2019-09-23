@@ -8,15 +8,18 @@ let double_second idx v =
   else v
 
 let valid id_number =
-  if String.exists
-      ~f:(fun c -> not(Char.is_digit c || Char.is_whitespace c)) id_number
+  if String.exists id_number ~f:(fun c ->
+      not(Char.is_digit c || Char.is_whitespace c))
   then false
-  else let id_number = String.filter ~f:Char.is_digit id_number in
-    if String.length id_number < 2 then false
+  else
+    let id_number = String.filter ~f:Char.is_digit id_number in
+    let len = String.length id_number in
+    if len < 2 then false
     else id_number
-         |> String.to_list_rev
-         |> List.mapi ~f:(fun idx v -> Char.get_digit_exn v |> double_second (idx + 1))
-         |> List.fold ~init:0 ~f:(+)
+         |> String.foldi ~init:0 ~f:(fun idx acc v ->
+             Char.get_digit_exn v
+             |> double_second (len - idx)
+             |> (+) acc)
          |> fun v -> v % 10 = 0
 ;;
 
