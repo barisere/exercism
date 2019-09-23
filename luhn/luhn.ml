@@ -14,7 +14,6 @@ let valid id_number =
   else let id_number = String.filter ~f:Char.is_digit id_number in
     if String.length id_number < 2 then false
     else id_number
-         |> String.filter ~f:Char.is_digit
          |> String.to_list_rev
          |> List.mapi ~f:(fun idx v -> Char.get_digit_exn v |> double_second (idx + 1))
          |> List.fold ~init:0 ~f:(+)
