@@ -8,28 +8,22 @@ let try_pop_char stack c =
   | _ -> None
 ;;
 
-let lex_brackets s =
+let are_balanced s =
   let consume_tokens stack s =
-    String.foldi ~init:(Ok s) ~f:(fun i acc c ->
-        let map_pop_error = function
-          | Some _ -> acc
-          | None -> Error(i, c)
+    String.fold ~init:(Some "") ~f:(fun acc c ->
+        let map_pop_result = Option.map2 ~f:(fun acc' c' ->
+            Char.to_string c' ^ acc' ^ Char.to_string c) acc
         in
-        if Result.is_error acc then acc else
-          match c with
-          | '(' | '{' | '[' -> Stack.push stack c; acc
-          | ')' -> try_pop_char stack '(' |> map_pop_error
-          | '}' -> try_pop_char stack '{' |> map_pop_error
-          | ']' -> try_pop_char stack '[' |> map_pop_error
-          | _ -> acc
+        match c with
+        | '(' | '{' | '[' -> Stack.push stack c; acc
+        | ')' -> try_pop_char stack '(' |> map_pop_result
+        | '}' -> try_pop_char stack '{' |> map_pop_result
+        | ']' -> try_pop_char stack '[' |> map_pop_result
+        | _ -> acc
       ) s
   in
   let symbols = Stack.create () in
-  Result.(consume_tokens symbols s >>= (fun s' -> match Stack.top symbols with
-      | Some s -> Error(0, s)
-      | None -> Ok s'))
-;;
-
-let are_balanced s = Result.is_ok (lex_brackets s)
+  let s' = consume_tokens symbols s in
+  Stack.is_empty symbols && Option.is_some s'
 ;;
 
